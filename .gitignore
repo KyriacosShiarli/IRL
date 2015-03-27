@@ -1,1 +1,4 @@
 *.pyc
+data/**
+results/**
+saved_structures/**
