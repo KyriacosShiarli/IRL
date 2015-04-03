@@ -18,7 +18,7 @@ class featureModel(object):
 variances = [0.3,0.3,0.3,0.3,0.03,0.03]
 distr = [ norm(loc = 0, scale = variances[i]) for i in range(6)]
 
-state_disc_full = [np.linspace(-math.pi,math.pi,17)[0:16],np.linspace(0,3,9),np.linspace(-math.pi,math.pi,9)[0:8],np.linspace(0,4,6)]
+state_disc_full = [np.linspace(-math.pi,math.pi,9)[0:8],np.linspace(0,3,15),np.linspace(-math.pi,math.pi,17)[0:16],np.linspace(0,4,10)]
 action_disc_full = [np.arange(-0.5,0.5,0.1),np.array([0,0.15,0.2,0.25,0.30,0.35,0.4,0.45,0.5,0.55,0.6])]
 feature_full = featureModel(tile_code_features,state_disc_full,action_disc_full)
 
@@ -27,16 +27,15 @@ action_disc_sym = [np.arange(-0.5,0.5,0.1),np.array([0,0.1,0.15,0.2,0.25,0.3])]
 feature_sym = featureModel(symmetric_angles,state_disc_sym,action_disc_sym)
 class DiscModel(object): # Discretisation for non uniform polar discretisation
 	def __init__(self,kinematics = staticGroup_with_target,actions = {"linear" :np.array([0,0.15,0.2,0.25,0.30,0.35,0.4,0.45,0.5,0.55,0.6]),"angular" : np.arange(-0.5,0.5,0.1)},feature =  feature_full):
-		distance = np.linspace(0,3,9) # Nine bins whatever the case
-		self.dist_bins_per_angle = [9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9]
-		linear = np.array([0,0.1,0.35]) # Linear velocity bins
-		target_angle = np.linspace(-math.pi,math.pi,9)[0:8] # Target orientation bsins
-		target_distance = np.linspace(0,4,6)
-		angle = np.linspace(-math.pi,math.pi,17)[0:16] # Angle to persons bins
+		distance = np.linspace(0,3,15) # Nine bins whatever the case
+		self.dist_bins_per_angle = [15]*16
+		target_angle = np.linspace(-math.pi,math.pi,17)[0:16] # Target orientation bsins
+		target_distance = np.linspace(0,4,10)
+		angle = np.linspace(-math.pi,math.pi,8)[0:9] # Angle to persons bins
 		self.feature = feature
 		self.actions = actions#these are in the form of a dictionary
 		self.bin_info = [angle,distance,target_angle,target_distance]
-		self.discretisation_map = pickle_loader("discretisation_map.pkl")
+		self.discretisation_map = pickle_loader("saved_structures/discretisation_map.pkl")
 		
 		#self.dist_bins_per_angle = [5,5,7,9,9,7,5,5]
 		self.kinematics = kinematics

@@ -20,7 +20,6 @@ class Transition(object):
 class Model(object):
 	def __init__(self,discretisation,learn  = False):
 		self.disc = discretisation#discretisation model
-
 		self.buildFeatureFunction()
 		if learn == True:
 			self.estimators,ex = learn_correction(10,10)
@@ -28,7 +27,7 @@ class Model(object):
 		else:
 			self.estimators = None
 		self.buildTransitionFunction(15)
-		self.w = -10*np.ones(len(self.feature_f[0,0,:]))	
+		self.w = -10*np.ones(len(self.feature_f[0,0,:]))
 		self.reward_f_initial = self.buildRewardFunction()
 		self.reward_f = self.buildRewardFunction()
 	def convert_to_dense(self,inpt):
@@ -64,7 +63,7 @@ class Model(object):
 		self.transition = Transition()
 		tot_states=self.transition.tot_states = self.disc.tot_states
 		tot_actions=self.transition.tot_actions =self.disc.tot_actions
-		self.transition.backward = self.transition.forward= [{} for j in xrange(tot_states*tot_actions)];
+		self.transition.backward  = [{} for j in xrange(tot_states*tot_actions)];self.transition.forward = [{} for j in xrange(tot_states*tot_actions)]
 		for i in xrange(self.disc.tot_states):
 			for j in xrange(self.disc.tot_actions):
 				bins = self.disc.stateToBins(i)	
@@ -83,11 +82,11 @@ class Model(object):
 					else:
 						self.transition.backward[j + i*self.disc.tot_actions][str(next_state)] = 1
 				v = self.transition.backward[j + i*tot_actions].values()			
-				for k in self.transition.backward[j + i*tot_actions].keys():
-					self.transition.backward[j + i*tot_actions][k] /= float(np.sum(v))
-					self.transition.forward[j + int(k)*tot_actions][str(i)] = self.transition.backward[j+i*tot_actions][k]
-				self.transition.dense_backward,self.transition.chunks_backward = convert_to_dense(self.transition_backward)
-				self.transition.dense_forward,self.transition.chunks_forward = convert_to_dense(self.transition_forward)
+				for key in self.transition.backward[j + i*tot_actions].keys():
+					self.transition.backward[j + i*tot_actions][key] /= float(np.sum(v))
+					self.transition.forward[j + int(key)*tot_actions][str(i)] = self.transition.backward[j+i*tot_actions][key]
+		self.transition.dense_backward,self.transition.chunks_backward = self.convert_to_dense(self.transition.backward)
+		self.transition.dense_forward,self.transition.chunks_forward = self.convert_to_dense(self.transition.forward)
 	def buildFeatureFunction(self):
 		for i in xrange(self.disc.tot_states):
 			state_quantity = self.disc.stateToQuantity(i)

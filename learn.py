@@ -107,7 +107,7 @@ class Learner(object):
 				if i != 0: gradient = momentum(gradient,prev,moment)
 				self.model.w=self.model.w*np.exp(-rate*gradient) ; print "new W: " , self.model.w
 				self.model.reward_f = self.model.buildRewardFunction()
-				self.model.reward_f = self.model.reward_f - 3*self.model.external_reward 
+				#self.model.reward_f = self.model.reward_f - 3*self.model.external_reward 
 				prev = gradient
 				if i < 25:rate = rate/1.01
 				else: rate = rate*1.02
@@ -167,29 +167,52 @@ class Learner(object):
 
 if __name__ == "__main__":
   	#Initialisa models
-  	base_directory = "results/Lossaugmented2Final/"
-  	plot_directory = base_directory + "plots/"
-  	metrics_directory = base_directory + "numbers/"
-  	make_dir(plot_directory) ; make_dir(metrics_directory)
+  	base_directory = "results/stateonlynormal/"
+  	#plot_directory = base_directory + "plots/"
+  	#metrics_directory = base_directory + "numbers/"
+  	make_dir(base_directory) 
 
   	disc_model = DiscModel()
 
-  	model = fn.pickle_loader("saved_structures/model.pkl")
+  	#model = fn.pickle_loader("saved_structures/model.pkl")
+  	dd= 0
+  	for i in disc_model.bin_info:
+  		dd+=len(i)
+  	
+  	print "Model"
   	supervised_reward = fn.pickle_loader("saved_structures/supervised_reward_state2.pkl")
-  	model.external_reward = supervised_reward
-	examples_good = fn.pickle_loader("saved_structures/examples_good.pkl")
-	examples_bad = fn.pickle_loader("saved_structures/examples_bad.pkl")
-	w = model.w 
+  	
+  	examples = load_all(30)
+  	examples = extract_info(disc_model,"Full",examples)
 
+  	examples_good = []
+  	examples_bad = []
+  	for i in examples:
+  		if i.quality == 1 and i.feature_sum[16]!=30:
+  			examples_good.append(i)
+  		else:
+  			examples_bad.append(i)
+
+	#examples_good = fn.pickle_loader("saved_structures/examples_good.pkl")
+	#examples_bad = fn.pickle_loader("saved_structures/examples_bad.pkl")
+	#model = pickle_loader("saved_structures/new_model.pkl")
+	#model.disc = disc_model
+	model = Model(disc_model,learn = True)
+	print "Feature function"
+	print "end Feature function"
+	model.feature_f[:,:,dd:] = 0
+	pickle_saver(model,"saved_structures/new_model2.pkl")
+	w = model.w 
 	iterations =50
 	gamma = 0.03
-	test_size = 0.25
+	test_size = 0.01
 	repetitions = 4
 
 	results = []
 	for rep in range(3,repetitions):
-		train_g,test_g = getFolds(examples_good,test_size,rep)
+		#train_g,test_g = getFolds(examples_good,test_size,rep)
 		train_b,test_b = getFolds(examples_bad,test_size,rep)
+		train_g = test_g = examples_good
 
 		model.w = w
 		model.reward_f = model.buildRewardFunction()
@@ -200,8 +223,8 @@ if __name__ == "__main__":
 		learner(iterations,gamma,0.4,examples_type= "good")
 
 		#pickle_saver(learner.results,metrics_directory + "error+lik_" +str(rep)+"_.pkl")
-		pickle_saver(learner.model.reward_f,metrics_directory + "reward_" +str(rep)+"_.pkl",)
-		pickle_saver(learner.policy,metrics_directory + "policy_" +str(rep)+"_.pkl",)
+		pickle_saver(learner.model.reward_f,base_directory + "reward_" +str(rep)+"_.pkl",)
+		pickle_saver(learner.policy,base_directory + "policy_" +str(rep)+"_.pkl",)
 		result = EmptyObject()
 		result.final = evaluate_policy(test_g,model,learner.policy)
 		result.initial = evaluate_policy(test_g,model,learner.policy_initial)
@@ -222,5 +245,5 @@ if __name__ == "__main__":
 		#plot_result(learner.results_b.train_error,learner.results_b.test_error,learner.results_b.train_lik,learner.results_g.test_lik,name)
 		#trajectoryCompare(train_b,steps,model,learner.policy,learner.policy_initial,plot_directory+n1,plot=True)
 		#trajectoryCompare(test_b,steps,model,learner.policy,learner.policy_initial,plot_directory+n2,plot=True)
-	pickle_saver(results,metrics_directory + "metric.pkl")
+	pickle_saver(results,base_directory + "metric.pkl")
 		
