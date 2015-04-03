@@ -50,7 +50,7 @@ def learn_correction(num_learners,tree_depth):
 	fit = []
 	fit = np.array([estimator.predict(X_test) for estimator in estimators])
 
-	return estimators,examples
+	return estimators,tot_examples
 
 def predict_correction(state,action,estimators):
 	car_state = state_to_cartesian(state)
