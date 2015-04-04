@@ -27,11 +27,11 @@ action_disc_sym = [np.arange(-0.5,0.5,0.1),np.array([0,0.1,0.15,0.2,0.25,0.3])]
 feature_sym = featureModel(symmetric_angles,state_disc_sym,action_disc_sym)
 class DiscModel(object): # Discretisation for non uniform polar discretisation
 	def __init__(self,kinematics = staticGroup_with_target,actions = {"linear" :np.array([0,0.15,0.2,0.25,0.30,0.35,0.4,0.45,0.5,0.55,0.6]),"angular" : np.arange(-0.5,0.5,0.1)},feature =  feature_full):
-		distance = np.linspace(0,3,15) # Nine bins whatever the case
-		self.dist_bins_per_angle = [15]*16
-		target_angle = np.linspace(-math.pi,math.pi,17)[0:16] # Target orientation bsins
-		target_distance = np.linspace(0,4,10)
-		angle = np.linspace(-math.pi,math.pi,8)[0:9] # Angle to persons bins
+		distance = np.linspace(0,3,20) # Nine bins whatever the case
+		self.dist_bins_per_angle = [20]*2
+		target_angle = np.linspace(-math.pi,math.pi,3)[0:2] # Target orientation bsins
+		target_distance = np.linspace(0,4,20)
+		angle = np.linspace(-math.pi,math.pi,3)[0:2] # Angle to persons bins
 		self.feature = feature
 		self.actions = actions#these are in the form of a dictionary
 		self.bin_info = [angle,distance,target_angle,target_distance]
