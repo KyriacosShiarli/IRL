@@ -204,7 +204,7 @@ if __name__ == "__main__":
 	pickle_saver(model,"saved_structures/new_model2.pkl")
 	w = model.w 
 	iterations =50
-	gamma = 0.03
+	gamma = 0.3
 	test_size = 0.01
 	repetitions = 4
 
