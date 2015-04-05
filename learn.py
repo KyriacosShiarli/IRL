@@ -195,13 +195,8 @@ if __name__ == "__main__":
 
 	#examples_good = fn.pickle_loader("saved_structures/examples_good.pkl")
 	#examples_bad = fn.pickle_loader("saved_structures/examples_bad.pkl")
-	#model = pickle_loader("saved_structures/new_model.pkl")
+	model = pickle_loader("saved_structures/new_model2.pkl")
 	#model.disc = disc_model
-	model = Model(disc_model,learn = True)
-	print "Feature function"
-	print "end Feature function"
-	model.feature_f[:,:,dd:] = 0
-	pickle_saver(model,"saved_structures/new_model2.pkl")
 	w = model.w 
 	iterations =50
 	gamma = 0.3
