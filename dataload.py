@@ -8,7 +8,6 @@ import itertools
 from functions import *
 import scipy.signal
 import scipy.ndimage.filters as filt
-from kinematics import inverse_kinematics
 import cPickle as pickle
 class ExampleStruct(object):
 	def __init__(self):
@@ -27,13 +26,12 @@ class ExampleStruct(object):
 
 def slice_example(size,example):
 	new_examples =[]
-
 	length = example.states.shape[0]
 	chunks = length/size
 	for i in range(int(chunks)):
 		ex = ExampleStruct()
-		ex.states = example.states[i*size:i*size+size,:]
-		ex.actions = example.actions[i*size:i*size+size,:]
+		ex.states = example.states[-(i*size+size+1):-(i*size+1),:]
+		ex.actions = example.actions[-(i*size+size+1):-(i*size+1),:]
 		ex.quality = example.quality
 		new_examples.append(ex)
 		ex.chunk_info = [i+1,chunks]
@@ -119,19 +117,19 @@ def loadFile4(name,slicing = "Full",quality_vector=None,subsamp=None):
 			ex.labels = patch_labels(ex.labels,15)
 			if subsamp != None:
 				ex.labels = subsample(np.array(ex.labels),subsamp,scal  = 2)
-				temp = angle_subsampler(ex.states[:,0],subsamp,scal  = 2)
-				temp = np.vstack([temp,subsample(ex.states[:,1],subsamp,scal = 2)])
-				temp = np.vstack([temp,angle_subsampler(ex.states[:,2],subsamp,scal = 2)])
-				temp = np.vstack([temp,subsample(ex.states[:,3],subsamp,scal = 2)])			
+				temp = angle_subsampler(ex.states[:,0],subsamp,scal  = 0.01)
+				temp = np.vstack([temp,subsample(ex.states[:,1],subsamp,scal = 0.01)])
+				temp = np.vstack([temp,angle_subsampler(ex.states[:,2],subsamp,scal = 0.01)])
+				temp = np.vstack([temp,subsample(ex.states[:,3],subsamp,scal = 0.01)])			
 				ex.states = np.transpose(temp)
 				#ex.fake_actions = np.zeros([ex.states.shape[0],2]);
 				#for k in range(ex.states.shape[0]-1):
 				#	ex.fake_actions[k,:] = inverse_kinematics(ex.states[k,:],ex.states[k+1,:],0.129)
-				temp1 = subsample(ex.actions[:,0],subsamp,scal = 2)
+				temp1 = subsample(ex.actions[:,0],subsamp,scal = 0.01)
 				temp1 = np.vstack([temp1,subsample(ex.actions[:,1],subsamp,scal = 2)])
 				ex.fake_actions = np.transpose(temp1)
-				temp = filt.gaussian_filter(scipy.signal.wiener(subsample(ex.actions[:,0],subsamp,scal =   5),101),2)
-				temp = np.vstack([temp,subsample(ex.actions[:,1],subsamp,scal = 2)])
+				#temp = filt.gaussian_filter(scipy.signal.wiener(subsample(ex.actions[:,0],subsamp,scal =   5),101),2)
+				temp = np.vstack([temp,subsample(ex.actions[:,1],subsamp,scal = 0.001)])
 				ex.actions = np.transpose(temp)
 				#ex.actions = ex.fake_actions
 			examples.append(ex)
@@ -194,13 +192,13 @@ def extract_info(disc_model,num_samples,examples,examples_type = "good"):
 def load_all(slicing):
 	if slicing =="Full":
 		qual = [1,1,0,0,1,0,0,1,1,1,1,0]
-		examples1 = loadFile4("data/Experiments Data Folder v2/features_17-11-2014_11.08.31 AM/",slicing = slicing,subsamp = 8,quality_vector = qual)
-		examples2 = loadFile4("data/Experiments Data Folder v2/features_17-11-2014_04.20.57 PM/",slicing = slicing,subsamp = 16,quality_vector = qual)
+		examples1 = loadFile4("data/Experiments Data Folder v2/features_17-11-2014_11.08.31 AM/",slicing = slicing,subsamp = None,quality_vector = qual)
+		examples2 = loadFile4("data/Experiments Data Folder v2/features_17-11-2014_04.20.57 PM/",slicing = slicing,subsamp = None,quality_vector = qual)
 		#examples1 = [examples1[0], examples1[2], examples1[5], examples1[7]] 
 		qual = [1,0,0,1,1,1,0,1,1,0,1,1]
-		examples3 = loadFile4("data/Experiments Data Folder v2/features_28-11-2014_01.22.03 PM/",slicing = slicing,subsamp = 8,quality_vector = qual) 
+		examples3 = loadFile4("data/Experiments Data Folder v2/features_28-11-2014_01.22.03 PM/",slicing = slicing,subsamp = None,quality_vector = qual) 
 		qual = [0,0,0,1,1,1,1,1,1,1,1,1]
-		examples4 = loadFile4("data/Experiments Data Folder v2/features_28-11-2014_02.02.13 PM/",slicing = slicing,subsamp = 8,quality_vector = qual)
+		examples4 = loadFile4("data/Experiments Data Folder v2/features_28-11-2014_02.02.13 PM/",slicing = slicing,subsamp = None,quality_vector = qual)
 		examples = [examples1,examples2,examples3,examples4]
 	else:
 		#qual = [1,1,1,1,1,1,1,1,1,1,1,1]
@@ -273,8 +271,14 @@ if __name__ =="__main__":
 				f.set_size_inches(30.,17.)
 				f.savefig(directory+"Trajectory"+str(i)+".png")
 			#plt.scatter(range(x),e.init2,color = "blue",alpha = 0.4)
-	plot_raw_data()
-
+	#plot_raw_data()
+	m = DiscModel()
+	dat = load_all(30)
+	dat = extract_info(m,"Full",dat)
+	for d in dat:
+		print d.feature_sum[16]
+		print "QUALITY______",d.quality
+ 
 	#examples_filtered = load_xy("data/Experiments Data Folder v2/PoseAndOrientations_Vels_data/experiment 2/filtered_PoseAndOrientation_Vels_Robot.txt")
 	#examples_raw = load_xy("data/Experiments Data Folder v2/PoseAndOrientations_Vels_data/experiment 2/raw_PoseAndOrientation_Vels_Robot.txt")
 

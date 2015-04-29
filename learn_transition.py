@@ -37,7 +37,7 @@ def learn_correction(num_learners,tree_depth):
 	#------------------------------------------------------
 	m = DiscModel()
 	tot_examples = load_all("Full")
-	tot_examples = tot_examples[0] + tot_examples[1]
+	tot_examples = tot_examples[0] + tot_examples[2],tot_examples[3]
 	train_examples = tot_examples
 	test_examples = tot_examples[0:5]
 	X_train,diff_train = get_dataset(m.kinematics,train_examples)

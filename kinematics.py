@@ -105,26 +105,34 @@ def staticGroupSimple2(state,action,duration = 0.129):
 	out = np.zeros(len(state))
 	out[0] = orient ; out[1] = dist; #out[2] = action[0] ; out[3] = action[1]
 	return out
-def inverse_kinematics(state1,state2,duration = 0.02):
-	action = np.zeros(2)
-	if (state2[0] -state1[0]) > math.pi:
-		action[0] = (state2[0] -state1[0] - 2*math.pi)/duration
-	elif (state2[0] -state1[0]) < -math.pi:
-		action[0] = (state2[0] -state1[0] + 2*math.pi)/duration
+
+def kinematics_new(state,action,duration = 0.133):
+	if state[0] < math.pi/2 and state[0] > -math.pi/2:
+		rhoupdate = -math.cos(state[0]) * action[1] * duration
+		alphaupdate = (+math.sin(state[0])*action[1]/state[1] - action[0])*duration
 	else:
-		action[0] = (state2[0]-state1[0])/duration
-	if action[0]>5:
-		print "HERE",state1[0],state2[0],action[0]
-	action[1] = np.absolute((state2[1]-state1[1])/duration)
-	return action
+		rhoupdate = math.cos(state[0]) * action[1] * duration
+		alphaupdate = (-math.sin(state[0])*action[1]/state[1] + action[0])*duration
+	out = np.zeros(len(state))
+	out[0] = state[0]+alphaupdate
+	out[1] = state[1]+rhoupdate
+	while out[0] > math.pi or out[0] < -math.pi:
+		out[0] -=math.copysign(2*math.pi,out[0]) 
+	return out
 
-
-
-
-def staticGroup_with_target(state,action,duration=0.129):
-
-	group = staticGroupSimple2(state[:2],action,duration)
-	target = staticGroupSimple2(state[2:4],action,duration)
+def kinematics_inverse(state,state_new,duration = 0.01666):
+	if state[2] < math.pi/2 and state[2] > -math.pi/2:
+		v = (state_new[1] - state[1])/(-math.cos(state[0])*duration)
+		omega = math.sin(state[0])*v/state[1] -(state_new[0] - state[0])/duration
+	else:
+		v = (state_new[1] - state[1])/(math.cos(state[0])*duration)
+		omega = math.sin(state[0])*v/state[1] + (state_new[0] - state[0])/duration
+	return omega,v
+def staticGroup_with_target(state,action,duration=0.01666):
+	group = kinematics_new(state[:2],action,duration)
+	target = kinematics_new(state[2:4],action,duration)
+	#group = staticGroupSimple2(state[:2],action,duration)
+	#target = staticGroupSimple2(state[2:4],action,duration)
 	return np.concatenate((group,target))
 
 if __name__=="__main__":

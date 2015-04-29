@@ -4,7 +4,7 @@ from discretisationmodel import *
 import matplotlib.pyplot as plt
 from forwardBackward import *
 from Model import Model
-from learn_transition import learn_tran,loss_augmentation,learn_correction,predict_correction
+from learn_transition import learn_correction,predict_correction
 import operator
 import math
 from functions import make_dir
@@ -43,29 +43,40 @@ def plotNextState():
 
 def plotDrift(experiments,startpoint,estimators):
 	m = DiscModel()
-	base_directory = "data/tests/transition_tests12.02/"
+	base_directory = "data/tests/transition_tests7April2/"
 	nam = "experiment "+str(1)+"/"
 	directory = base_directory+nam
 	make_dir(directory)
 	for j,example in enumerate(experiments):
 		states_kin = np.array(example.states[startpoint])
 		states_kin2 =np.array(example.states[startpoint])
+		new_actions = np.array(example.actions[startpoint])
 		for n,i in enumerate(example.actions[startpoint:-1]):
 			if n == 0:
-				nex = predict_correction(states_kin,i,estimators)
-				next_k =state_to_cartesian(m.kinematics(states_kin,i))
-				next = state_to_polar(next_k - nex)				
-				states_kin = np.vstack([states_kin,next])
+				#nex = predict_correction(states_kin,i,estimators)
+				#next_k =state_to_cartesian(m.kinematics(states_kin,i))
+				#next = state_to_polar(next_k - nex)				
+				#states_kin = np.vstack([states_kin,next])
+				states_kin = np.vstack([states_kin,m.kinematics(states_kin,i)])
 				states_kin2 = np.vstack([states_kin2,m.kinematics(states_kin2,i)])
+				new_actions = np.vstack([new_actions,kinematics_inverse(example.states[n],example.states[n+1])])
 			else:
-				nex = predict_correction(states_kin[n,:],example.actions[n],estimators)
-				next_k = state_to_cartesian(m.kinematics(states_kin[n,:],example.actions[n]))
-				next = state_to_polar(next_k -nex)
-				states_kin = np.vstack([states_kin,next])
+				#nex = predict_correction(states_kin[n,:],example.actions[n],estimators)
+				#next_k = state_to_cartesian(m.kinematics(states_kin[n,:],example.actions[n]))
+				#next = state_to_polar(next_k -nex)
+				new_actions = np.vstack([new_actions,list(kinematics_inverse(example.states[n],example.states[n+1]))])
+				#states_kin = np.vstack([states_kin,next])
+				states_kin = np.vstack([states_kin,m.kinematics(states_kin[n,:],example.actions[n])])
 				states_kin2 = np.vstack([states_kin2,m.kinematics(states_kin2[n,:],example.actions[n])])
+				print "____________________________________________"
+				print "STATE",states_kin2[n,:]
+				print "ACtions",example.actions[n]
+				print "Kinematics",m.kinematics(states_kin2[n,:],example.actions[n])
+				print "NEXT STATE",example.states[n,:]
+
 		ex = np.array(example.states[startpoint::])
 		x = range(len(ex))
-		f, axarr = plt.subplots(4,sharex = True)
+		f, axarr = plt.subplots(6,sharex = True)
 		axarr[0].scatter(x,ex[:,1],color = "blue",label = "data")
 		axarr[0].scatter(x,states_kin[:,1],color = "green",alpha = 0.4, label = "kinematic")
 		axarr[0].scatter(x,states_kin2[:,1],color = "red",alpha = 0.2, label = "kinematic2")
@@ -87,6 +98,14 @@ def plotDrift(experiments,startpoint,estimators):
 		axarr[3].scatter(x,ex[:,3],color = "blue")
 		axarr[3].scatter(x,states_kin[:,3],color = "green", alpha = 0.4)
 		axarr[3].scatter(x,states_kin2[:,3],color = "red", alpha = 0.2)
+
+		axarr[4].scatter(range(len(new_actions[:,1])),new_actions[:,0],color = "green")
+		axarr[4].scatter(x,example.actions[:,0],color = "blue",alpha = 0.1)
+
+
+		axarr[5].scatter(range(len(new_actions[:,1])),new_actions[:,1],color = "green")
+		axarr[5].scatter(x,example.actions[:,1],color = "blue",alpha = 0.1)
+
 
 		axarr[3].set_ylabel("Angle/rad")
 		axarr[2].set_ylabel("Distance")
@@ -132,7 +151,10 @@ def plot_reg_drift(idx,startpoint):
  #-4.07049444])
 #trajectoryCompare(w_fold1)
 if __name__ == '__main__':
-	estimators,examples = learn_correction(300,7)
+	#estimators,examples = learn_correction(300,7)
+	examples = load_all("Full")
+	examples = examples[0]+examples[2]+examples[3]
 	#examples =reduce(operator.add,examples)
+	estimators = 0
 	plotDrift(examples,0,estimators)
 #plot_reg_drift(1,1)
