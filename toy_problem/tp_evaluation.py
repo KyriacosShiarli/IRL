@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def eval_value(target_weights,apprentice_policy,model,initial_states,time_steps):
-		a_state_freq,a_state_action_freq,a_all = fb.forward(apprentice_policy,model.transition,initial_states,30) # 30 timesteps
+		a_state_freq,a_state_action_freq,a_all = fb.forward(apprentice_policy,model.transition,initial_states,time_steps) # 30 timesteps
 		a,s,f = model.feature_f.shape
 		feature_exp = np.dot(a_state_action_freq.reshape(s*a),model.feature_f.reshape(s*a,f))
 		value = np.dot(feature_exp,target_weights)
@@ -43,6 +43,7 @@ if __name__ == "__main__":
 		print value
 	def test_eval_reward():
 		disc = DiscModel()
+		
 		model1 = Model(disc, load_saved = True)
 		model1.w[disc.target[0]] = -1
 		model1.w[5 +disc.target[1]] = -1

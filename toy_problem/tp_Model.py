@@ -30,6 +30,7 @@ class Model(object):
 		self.choose_reward_function(reward_type)
 		self.reward_f_initial = self.buildRewardFunction()
 		self.reward_f = self.buildRewardFunction()
+		print self.feature_f
 	def convert_to_dense(self,inpt):
 		num_states = self.disc.tot_states
 		num_actions = self.disc.tot_actions
@@ -107,21 +108,24 @@ class Model(object):
 				feature_f[i,:] = features
 	 	self.feature_f = feature_f
 	def buildRewardFunction(self):
-		if "self.zeta" in locals():
-			return np.dot(self.feature_f,self.w - self.zeta)
+		if hasattr(self,"zeta") == True:
+			return np.dot(self.feature_f,self.w +self.zeta)	
 		else:
 			return np.dot(self.feature_f,self.w)
 	def choose_reward_function(self,choice):
-		rf = -10*np.ones(self.feature_f.shape[-1])
+		rf = -7*np.ones(self.feature_f.shape[-1])
 		if choice == "uniform":
 			rf = rf
 		elif choice == "target":
 			rf[0] = -4;rf[self.disc.boundaries[0]+1] = -4
 		elif choice == "obstacle":
 			rf[self.disc.boundaries[0]+self.disc.boundaries[1]+2] = -4;rf[-self.disc.boundaries[0]-1] = -4 
+		elif choice == "obstacle2":
+			rf[self.disc.boundaries[0]+self.disc.boundaries[1]+2] = -1;rf[-self.disc.boundaries[0]-1] = -1 
+			rf[self.disc.boundaries[0]+self.disc.boundaries[1]+3] = -4;rf[-self.disc.boundaries[0]] = -4 
 		elif choice == "avoid_reach":
-			rf[self.disc.boundaries[0]+self.disc.boundaries[1]+2] = -20;rf[-self.disc.boundaries[0]-1] = -20
-			rf[0] = -4;rf[self.disc.boundaries[0]+1] = -1 
+			rf[self.disc.boundaries[0]+self.disc.boundaries[1]+2] = -14;rf[-self.disc.boundaries[0]-1] = -14
+			rf[0] = -3;rf[self.disc.boundaries[0]+1] = 0
 		elif choice == "dual_reward":
 			self.zeta = -10*np.ones(self.feature_f.shape[-1])
 		self.w = rf

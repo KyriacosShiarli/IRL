@@ -89,7 +89,7 @@ def caus_ent_backward(transition,reward_f,goal,steps,conv=5,z_states = None):
     if reward_f.shape[0] ==num_actions:
       state_action = True
     else: state_action =False
-    gamma = 0.99
+    gamma = 0.90
     z_actions = np.zeros([num_actions,num_states])
     if z_states==None:
       z_states = np.zeros(num_states)
