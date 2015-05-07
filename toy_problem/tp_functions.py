@@ -156,11 +156,34 @@ def pickle_loader(full_directory):
 	with open(full_directory,'rb') as input:
 		return pickle.load(input)
 
+def discounted_sum(array_to_sum,factor,ax=0):
+	assert factor<=1 #if factor addition this is simply the sum
+	#Input must be a numpy array
+	if factor ==1:
+		out = np.sum(array_to_sum,axis=ax)
+		return out
+	elif len(array_to_sum.shape)==1:# single dimentional array
+		out = 0
+	elif len(array_to_sum.shape)>1:
+		mask = np.ones(len(array_to_sum.shape),dtype=bool)
+		mask[ax] = False
+		print "IN DISCOUNTER----------------------"
+		print "MASK", mask
+		print array_to_sum.shape
+		outdim = np.array(array_to_sum.shape)[mask]
+		dims = np.array(range(len(array_to_sum.shape)))[mask]
+		print ax,dims
+		out = np.zeros(outdim)
+		print "TRANSPOSITIONS", np.hstack([[ax],dims])
+		array_to_sum = array_to_sum.transpose(np.hstack([[ax],dims]))
+	for i,j in enumerate(array_to_sum):
+		out +=j*factor**i
+	return out
+
 def sum_chunks(one_d_arr,chunks):
 	out = [np.sum(one_d_arr[chunks[i]:chunks[i+1]]) for i in range(len(chunks)-1)]
 	return out
 if __name__ == "__main__":
-	from dataload import *
 	def test_folds():
 		examples = load_all(30)
 		print len(examples)
@@ -168,6 +191,10 @@ if __name__ == "__main__":
 			train,test = getFolds(examples,0.25,i)
 			print len(train),len(test)
 
+	def test_discounter():
+		arr = np.array([[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]])
+		out = discounted_sum(arr,0.8,ax=1)
+		print out
 	def test_pickle_saver_loader():
 		x = 5 
 		directory = "TESTS/funtions/picklesaveload/"
@@ -179,21 +206,23 @@ if __name__ == "__main__":
 			print "PICKLE TEST PASSED"
 		else: 
 			print "PIACLE TEST FAILED" 
-	test_pickle_saver_loader()
-	test_folds()
-	traj1 = np.ones([350,6])
-	traj2 = np.ones([350,6])
-	traj1[1,1] = 50
-	dist = distance_function(traj1,traj2)
-	print dist
+	test_discounter()
+	# test_pickle_saver_loader()
+	# test_folds()
+	# traj1 = np.ones([350,6])
+	# traj2 = np.ones([350,6])
+	# traj1[1,1] = 50
+	# dist = distance_function(traj1,traj2)
+	# print dist
 	#test =  np.arange(-math.pi,math.pi,0.1)
 	#ar = [1,4,5,6,7,8,9,9,9]
 	#ch = [0,2,9]
 	#print np.sum(ar[2:9])
 	#out = sum_chunks(ar,ch)
 	#print out
-	x = np.linspace(-math.pi,math.pi,14)
-	angle_smoother(x,50)
+	# x = np.linspace(-math.pi,math.pi,14)
+	# angle_smoother(x,50)
+
 
 
 	#out = map (angle_half_to_full,test)

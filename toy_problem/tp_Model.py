@@ -30,7 +30,6 @@ class Model(object):
 		self.choose_reward_function(reward_type)
 		self.reward_f_initial = self.buildRewardFunction()
 		self.reward_f = self.buildRewardFunction()
-		print self.feature_f
 	def convert_to_dense(self,inpt):
 		num_states = self.disc.tot_states
 		num_actions = self.disc.tot_actions
