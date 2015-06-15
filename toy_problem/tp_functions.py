@@ -6,6 +6,7 @@ import numpy as np
 from scipy.stats import norm
 import scipy.ndimage.filters as filt
 import cPickle as pickle
+import time
 
 def getFolds(examples,percent,idx):
 	k = int(np.floor(len(examples)*percent))
@@ -167,19 +168,38 @@ def discounted_sum(array_to_sum,factor,ax=0):
 	elif len(array_to_sum.shape)>1:
 		mask = np.ones(len(array_to_sum.shape),dtype=bool)
 		mask[ax] = False
-		print "IN DISCOUNTER----------------------"
-		print "MASK", mask
+		#print "IN DISCOUNTER----------------------"
+		#print "MASK", mask
 		print array_to_sum.shape
 		outdim = np.array(array_to_sum.shape)[mask]
 		dims = np.array(range(len(array_to_sum.shape)))[mask]
 		print ax,dims
 		out = np.zeros(outdim)
-		print "TRANSPOSITIONS", np.hstack([[ax],dims])
+		#print "TRANSPOSITIONS", np.hstack([[ax],dims])
 		array_to_sum = array_to_sum.transpose(np.hstack([[ax],dims]))
 	for i,j in enumerate(array_to_sum):
 		out +=j*factor**i
 	return out
 
+def pin_to_threshold(vector_to_pin,maximum,minimum):
+	assert maximum > minimum
+	vector_to_pin = np.array(vector_to_pin)
+	where_max = [i for i in range(len(vector_to_pin)) if vector_to_pin[i] > maximum]
+	where_min = [i for i in range(len(vector_to_pin)) if vector_to_pin[i] < minimum]
+	vector_to_pin[where_max]= maximum
+	vector_to_pin[where_min]= minimum
+	return vector_to_pin
+
+class timer(object):
+	def __init__(self):
+		self.start_time = []
+		self.end_time = []
+		self.time_taken = []
+	def start(self):
+		self.start_time.append(time.clock())
+	def stop(self):
+		self.end_time.append(time.clock())
+		self.time_taken.append(self.end_time[-1]-self.start_time[-1])
 def sum_chunks(one_d_arr,chunks):
 	out = [np.sum(one_d_arr[chunks[i]:chunks[i+1]]) for i in range(len(chunks)-1)]
 	return out
@@ -206,7 +226,15 @@ if __name__ == "__main__":
 			print "PICKLE TEST PASSED"
 		else: 
 			print "PIACLE TEST FAILED" 
-	test_discounter()
+	#test_discounter()
+	def test_threshold_pin():
+		vector = [1,2,5,-15,35]
+		test = [1,2,5,-5,5]
+		out = pin_to_threshold(vector,5,-5)
+		if sum(test-out)==0:
+			print "passed",out,test
+	test_threshold_pin()
+
 	# test_pickle_saver_loader()
 	# test_folds()
 	# traj1 = np.ones([350,6])

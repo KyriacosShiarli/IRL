@@ -8,7 +8,7 @@ def staticGroupSimple1(distance,orientation_group,max_distance=7):
 	features[1] = 0.5*(math.cos(orientation_group)+1)
 	return features
 
-def toy_problem_features_simple(state,target,boundaries):
+def toy_problem_simple(state,target,boundaries):
 	# [xtarget,ytarget,xobs,yobs]
 	#xdistance from target
 	xtar = np.zeros(boundaries[0]+1)
@@ -44,6 +44,32 @@ def toy_problem_features_simple(state,target,boundaries):
 		yobs[-1]=1
 
 	return np.concatenate([xtar,ytar,xobs,yobs])
+
+
+def toy_problem_squared(state,target,boundaries):
+	# [xtarget,ytarget,xobs,yobs]
+	#xdistance from target
+	xtar = np.zeros(boundaries[0]+1)
+	
+	arr = []
+	for i in range(boundaries[0]+1):
+		for j in range(boundaries[1]+1):
+			d =np.sqrt(i**2 + j**2)
+			arr.append(d)
+
+
+	unique = np.unique(arr)
+	tar_dist = np.zeros(len(unique))
+	obs_dist = np.zeros(len(unique))
+	#print "DIST1",dist
+	dist = np.sqrt((state[0]-target[0])**2 +(state[1]-target[1])**2)
+	tar_dist[np.where(unique == dist)[0]] = 1
+
+	dist2 = np.sqrt((state[0]-state[2])**2 +(state[1]-state[3])**2)
+	obs_dist[np.where(unique == dist2)[0]] = 1 
+	#ydistance from target
+	return np.concatenate([tar_dist,obs_dist])
+
 
 if __name__ == "__main__":
 	state = [0,0,5,5,4]

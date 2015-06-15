@@ -1,6 +1,6 @@
 import math
 import numpy as np
-from tp_RFeatures import toy_problem_features_simple
+from tp_RFeatures import toy_problem_simple,toy_problem_squared
 from tp_kinematics import *
 from scipy.stats import norm
 
@@ -21,7 +21,7 @@ class featureModel(object):
 #action_disc_sym = [np.arange(-0.5,0.5,0.1),np.array([0,0.1,0.15,0.2,0.25,0.3])]
 #feature_sym = featureModel(symmetric_angles,state_disc_sym,action_disc_sym)
 class DiscModel(object): # Discretisation for non uniform polar discretisation
-	def __init__(self,kinematics = toy_kinematics_gridworld,target = [4,4],boundaries=[4,4],actions = {"linear" :np.array([0,1,2,3,4])},feature = toy_problem_features_simple):
+	def __init__(self,kinematics = toy_kinematics_gridworld,target = [4,4],boundaries=[4,4],actions = {"linear" :np.array([0,1,2,3,4])},feature = toy_problem_squared):
 		self.target = target
 		self.boundaries = boundaries		
 		robot_x = np.linspace(0,self.boundaries[0],self.boundaries[0]+1) # Nine bins whatever the case
@@ -114,11 +114,15 @@ if __name__=="__main__":
 			print np.where(ou==1)
 			print len(ou)
 			print "_____________________________"
-	disc = DiscModel(feature = toy_problem_features_simple)
-	print "TEST",disc.stateToQuantity(disc.quantityToState([0,0,2,2,1]))
-	print disc.quantityToState([0,0,2,2,1])
-	print disc.tot_states
-
+	#disc = DiscModel(feature = toy_problem_features_simple)
+	# print "TEST",disc.stateToQuantity(disc.quantityToState([0,0,2,2,1]))
+	# print disc.quantityToState([0,0,2,2,1])
+	# print disc.tot_states
+	m = DiscModel()
+	#m.indexToAction(0)
+	quantity = [0,0,0,0,0]
+	state = m.quantityToBins(quantity)
+	print state
 	#m.indexToAction(0)
 	#m.build_discretisation_map()
 

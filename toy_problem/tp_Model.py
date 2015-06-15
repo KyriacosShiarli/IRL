@@ -46,7 +46,7 @@ class Model(object):
 						new_state = False
 					else:
 						chunks[i].append(chunks[i][j])
-					print "WARNING"
+					#print "WARNING"
 				if keys !=[]:
 					ac = np.ones(len(keys))*j
 					col = np.vstack([ac,keys,values])
@@ -86,7 +86,7 @@ class Model(object):
 				v = self.transition.backward[j + i*tot_actions].values()			
 				for key in self.transition.backward[j + i*tot_actions].keys():
 					self.transition.backward[j + i*tot_actions][key] /= float(np.sum(v))
-					print "KEY",int(key.split('.')[0])
+					#print "KEY",int(key.split('.')[0])
 					self.transition.forward[j + int(key.split('.')[0])*tot_actions][str(i)] = self.transition.backward[j+i*tot_actions][key]
 		self.transition.dense_backward,self.transition.chunks_backward = self.convert_to_dense(self.transition.backward)
 		self.transition.dense_forward,self.transition.chunks_forward = self.convert_to_dense(self.transition.forward)
@@ -113,20 +113,32 @@ class Model(object):
 			return np.dot(self.feature_f,self.w)
 	def choose_reward_function(self,choice):
 		rf = -7*np.ones(self.feature_f.shape[-1])
-		if choice == "uniform":
-			rf = rf
-		elif choice == "target":
-			rf[0] = -4;rf[self.disc.boundaries[0]+1] = -4
+		if choice == "target":
+			if self.disc.feature==toy_problem_squared:
+				rf[0] = 0
+			elif self.disc.feature==toy_problem_simple:	
+				rf[0] = -0;rf[self.disc.boundaries[0]+1] = -0
 		elif choice == "obstacle":
-			rf[self.disc.boundaries[0]+self.disc.boundaries[1]+2] = -4;rf[-self.disc.boundaries[0]-1] = -4 
+			if self.disc.feature==toy_problem_squared:
+				rf[16]=0
+			elif self.disc.feature==toy_problem_simple:	
+				rf[self.disc.boundaries[0]+self.disc.boundaries[1]+2] = -4;rf[-self.disc.boundaries[0]-1] = -4 
 		elif choice == "obstacle2":
-			rf[self.disc.boundaries[0]+self.disc.boundaries[1]+2] = -1;rf[-self.disc.boundaries[0]-1] = -1 
-			rf[self.disc.boundaries[0]+self.disc.boundaries[1]+3] = -4;rf[-self.disc.boundaries[0]] = -4 
+			if self.disc.feature==toy_problem_squared:
+				rf[15]=0
+			elif self.disc.feature==toy_problem_simple:	
+				rf[self.disc.boundaries[0]+self.disc.boundaries[1]+2] = -1;rf[-self.disc.boundaries[0]-1] = -1 
+				rf[self.disc.boundaries[0]+self.disc.boundaries[1]+3] = -4;rf[-self.disc.boundaries[0]] = -4 			
 		elif choice == "avoid_reach":
-			rf[self.disc.boundaries[0]+self.disc.boundaries[1]+2] = -14;rf[-self.disc.boundaries[0]-1] = -14
-			rf[0] = -3;rf[self.disc.boundaries[0]+1] = 0
+			if self.disc.feature==toy_problem_squared:
+				rf[0]=0;rf[15]=-20
+			elif self.disc.feature==toy_problem_simple:	
+				rf[self.disc.boundaries[0]+self.disc.boundaries[1]+2] = -14;rf[-self.disc.boundaries[0]-1] = -14
+				rf[0] = -0;rf[self.disc.boundaries[0]+1] = 0
+		elif choice == "uniform":
+			rf = rf
 		elif choice == "dual_reward":
-			self.zeta = -10*np.ones(self.feature_f.shape[-1])
+			self.zeta = -3*np.ones(self.feature_f.shape[-1])			
 		self.w = rf
 
 		return rf

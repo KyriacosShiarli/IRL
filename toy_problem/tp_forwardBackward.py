@@ -3,10 +3,10 @@ import numpy as np
 import math
 import random as rd
 import time
-from tp_functions import sum_chunks,discounted_sum
+from tp_functions import sum_chunks,discounted_sum,timer
 
 def forward(policy,transition,start,time_steps, discount = None):
-    print "START of FORWARD ------------------->"
+    #print "START of FORWARD ------------------->"
     num_actions = transition.tot_actions;num_states = transition.tot_states
     dt_states = 0.0625 * np.zeros([num_states,time_steps])
     dt_states_actions = np.zeros([num_actions,num_states,time_steps])
@@ -25,7 +25,7 @@ def forward(policy,transition,start,time_steps, discount = None):
       state_action_freq = discounted_sum(dt_states_actions,discount,ax=2)
       state_freq = discounted_sum(dt_states,discount,ax = 1)
     
-    print "END of Forward"
+    #print "END of Forward"
     return state_freq,state_action_freq,dt_states
 
 def caus_ent_backward(transition,reward_f,conv=5,discount = 0.9,z_states = None):
@@ -38,7 +38,7 @@ def caus_ent_backward(transition,reward_f,conv=5,discount = 0.9,z_states = None)
     if z_states==None:
       z_states = np.zeros(num_states)
     #Backward - - - - - - - - - - - - - - - - - - - - - - - - - -
-    print "Caus Ent Backward"
+    #print "Caus Ent Backward"
     count = 0
     delta = 0
     while True:
@@ -53,7 +53,48 @@ def caus_ent_backward(transition,reward_f,conv=5,discount = 0.9,z_states = None)
       z_states = m + np.log(np.sum(np.exp(z_actions-m),axis = 0))
       count+=1
       #Action Probability Computation - - - - - - - - - - - - - - - -
-      delta = np.sum(np.sum(np.absolute(prev-z_states)))
+      delta = np.amax(np.absolute(prev-z_states))
+      if count>2 and delta<conv:
+        #print "Count and delta", count,delta
+        z_actions = z_actions
+        m = np.amax(z_actions)
+        z_states = m + np.log(np.sum(np.exp(z_actions-m),axis = 0))
+        policy= np.exp(z_actions-z_states)
+        break
+    return policy,np.log(policy),z_states
+
+def timed_backward(transition,reward_f,conv=5,discount = 0.9,z_states = None):
+    sweep_timer = timer()
+    convergence_timer = timer()
+    num_actions = transition.tot_actions;num_states = transition.tot_states
+    if reward_f.shape[0] ==num_actions:
+      state_action = True
+    else: state_action =False
+    gamma = discount
+    z_actions = np.zeros([num_actions,num_states])
+    if z_states==None:
+      z_states = np.zeros(num_states)
+    #Backward - - - - - - - - - - - - - - - - - - - - - - - - - -
+    print "Caus Ent Backward"
+    count = 0
+    delta = 0
+    convergence_timer.start()
+    while True:
+      prev = np.zeros(z_states.shape)
+      prev += z_states
+      sweep_timer.start()
+      for i in range(num_states):
+        tr = transition.dense_backward[i]
+        ch = transition.chunks_backward[i]
+        out = gamma*np.array(sum_chunks(tr[2,:]*z_states[map(int,tr[1,:])],ch))
+        z_actions[:,i] = out +reward_f[:,i]
+      sweep_timer.stop()
+      m = np.amax(z_actions)
+      z_states = m + np.log(np.sum(np.exp(z_actions-m),axis = 0))
+      count+=1
+      #Action Probability Computation - - - - - - - - - - - - - - - -
+      delta = np.amax(np.absolute(prev-z_states))
+      print delta
       if count>2 and delta<conv:
         print "Count and delta", count,delta
         z_actions = z_actions
@@ -61,7 +102,9 @@ def caus_ent_backward(transition,reward_f,conv=5,discount = 0.9,z_states = None)
         z_states = m + np.log(np.sum(np.exp(z_actions-m),axis = 0))
         policy= np.exp(z_actions-z_states)
         break
-    return policy,np.log(policy),z_states
+    convergence_timer.stop()
+    times = [sum(convergence_timer.time_taken)/len(convergence_timer.time_taken),sum(sweep_timer.time_taken)/len(sweep_timer.time_taken)]
+    return policy,np.log(policy),z_states,times
 
 def caus_ent_backward_nodisount(transition,reward_f,steps):
     num_actions = transition.tot_actions;num_states = transition.tot_states
